@@ -37,7 +37,7 @@ namespace KuduSync.NET
             _targetSubFolder = options.TargetSubFolder;
             _nextManifest = new DeploymentManifest(options.NextManifestFilePath);
             _previousManifest = new HashSet<string>(DeploymentManifest.LoadManifestFile(options.PreviousManifestFilePath).Paths, StringComparer.OrdinalIgnoreCase);
-            BuildIgnoreList(options.Ignore, out _ignoreList, out _wildcardIgnoreList);
+            BuildIgnoreList(options.Ignore, out _ignoreList, out _wildcardIgnoreList, _from);
             _whatIf = options.WhatIf;
             _toBeDeletedDirectoryPath = Path.Combine(Environment.ExpandEnvironmentVariables(ConfigurationManager.AppSettings["KuduSyncDataDirectory"]), "tobedeleted");
 
@@ -84,7 +84,7 @@ namespace KuduSync.NET
             return true;
         }
 
-        private void BuildIgnoreList(string ignore, out HashSet<string> ignoreSet, out List<string> wildcardIgnoreList)
+        private void BuildIgnoreList(string ignore, out HashSet<string> ignoreSet, out List<string> wildcardIgnoreList, string from)
         {
             ignoreSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             wildcardIgnoreList = new List<string>();
@@ -99,7 +99,7 @@ namespace KuduSync.NET
                     {
                         wildcardIgnoreList.Add(trimedToken.TrimStart('*'));
                     }
-                    else if (trimedToken.Contains("*") || trimedToken.Contains('/') || trimedToken.Contains('\\'))
+                    else if (trimedToken.Contains("*") || (trimedToken.Contains('/') && !trimedToken.StartsWith("/")) || trimedToken.Contains('\\'))
                     {
                         throw new NotSupportedException(@"Wildcard support limited to prefix matching, e.g '*txt'. Other wildcard matching (or \\) is not supported");
                     }
@@ -109,6 +109,7 @@ namespace KuduSync.NET
                     }
                 }
             }
+            ignoreSet.Add(Path.Combine(from, "web.config"));
         }
 
         public void Run()
@@ -432,7 +433,7 @@ namespace KuduSync.NET
         private bool IgnorePath(FileSystemInfoBase fileSystemInfoBase)
         {
             return (_ignoreList.Contains(fileSystemInfoBase.Name)
-                || _wildcardIgnoreList.Any((name) => fileSystemInfoBase.Name.EndsWith(name, StringComparison.OrdinalIgnoreCase)));
+                || _wildcardIgnoreList.Any((name) => fileSystemInfoBase.Name.EndsWith(name, StringComparison.OrdinalIgnoreCase)) || _ignoreList.Contains(fileSystemInfoBase.FullName));
         }
 
         private bool DoesPathExistsInManifest(string path, string targetSubFolder)
