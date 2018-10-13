@@ -31,7 +31,6 @@ namespace KuduSync.NET
         {
             _logger = logger;
             _options = options;
-
             _from = Path.GetFullPath(options.From);
             _to = Path.GetFullPath(options.To);
             _targetSubFolder = options.TargetSubFolder;

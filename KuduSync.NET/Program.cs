@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using System;
+using System.Configuration;
 using System.Diagnostics;
 
 namespace KuduSync.NET
@@ -11,22 +12,26 @@ namespace KuduSync.NET
             var stopwatch = Stopwatch.StartNew();
             var kuduSyncOptions = new KuduSyncOptions();
             int exitCode = 0;
-
+            Console.WriteLine(ConfigurationManager.AppSettings["KuduSyncDataDirectory"]);
             try
             {
-                ICommandLineParser parser = new CommandLineParser();
-                if (parser.ParseArguments(args, kuduSyncOptions))
-                {
-                    using (var logger = GetLogger(kuduSyncOptions))
+                Parser.Default.ParseArguments<KuduSyncOptions>(args).WithParsed(
+                    o =>
                     {
-                        new KuduSync(kuduSyncOptions, logger).Run();
-                    }
-                }
-                else
-                {
-                    Console.Error.WriteLine(kuduSyncOptions.GetUsage());
-                    return 1;
-                }
+                        using (var logger = GetLogger(o))
+                        {
+                            new KuduSync(o, logger).Run();
+                        }
+                    }).WithNotParsed(
+                    errors =>
+                    {
+                        foreach (var error in errors)
+                        {
+                            Console.Error.WriteLine(error);
+                        }
+                        exitCode = 1;
+                    });
+                if (exitCode == 1) return exitCode;
             }
             catch (Exception ex)
             {

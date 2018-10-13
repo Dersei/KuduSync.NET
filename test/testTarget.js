@@ -1,4 +1,4 @@
-var cmd = __dirname + "\\..\\KuduSync.NET\\bin\\Release\\KuduSync.NET.exe";
+var cmd = "dotnet " + __dirname + "\\..\\KuduSync.NET\\bin\\Release\\netcoreapp2.1\\KuduSync.NET.dll";
 var ignoredTestsMap = {};
 ignoredTestsMap['Ignore files (file*) should not copy them'] = true;
 ignoredTestsMap['Ignore files (bin/file*) should not copy them'] = true;
