@@ -19,11 +19,7 @@ namespace KuduSync.NET
 
         public static IDictionary<string, FileInfoBase> GetFiles(DirectoryInfoBase info)
         {
-            if (info == null)
-            {
-                return null;
-            }
-            return info.GetFilesWithRetry().ToDictionary(f => f.Name, StringComparer.OrdinalIgnoreCase);
+            return info?.GetFilesWithRetry().ToDictionary(f => f.Name, StringComparer.OrdinalIgnoreCase);
         }
 
         public static bool IsEmpty(this DirectoryInfoBase info)
@@ -39,33 +35,26 @@ namespace KuduSync.NET
 
         public static IDictionary<string, DirectoryInfoBase> GetDirectories(DirectoryInfoBase info)
         {
-            if (info == null)
-            {
-                return null;
-            }
-            return info.GetDirectories().ToDictionary(d => d.Name, StringComparer.OrdinalIgnoreCase);
+            return info?.GetDirectories().ToDictionary(d => d.Name, StringComparer.OrdinalIgnoreCase);
         }
 
         // Call DirectoryInfoBase.GetFiles under a retry loop to make the system
         // more resilient when some files are temporarily in use
         public static FileInfoBase[] GetFilesWithRetry(this DirectoryInfoBase info)
         {
-            return OperationManager.Attempt(() =>
-            {
-                return info.GetFiles();
-            });
+            return OperationManager.Attempt(info.GetFiles);
         }
 
         public static string GetRelativePath(string rootPath, string path)
         {
-            if (String.IsNullOrEmpty(rootPath))
+            if (string.IsNullOrEmpty(rootPath))
             {
-                throw new ArgumentNullException("rootPath");
+                throw new ArgumentNullException(nameof(rootPath));
             }
 
-            if (String.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path))
             {
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             }
 
             return path.Substring(rootPath.Length).TrimStart('\\');
@@ -73,14 +62,11 @@ namespace KuduSync.NET
 
         public static bool IsSubDirectory(string path1, string path2)
         {
-            if (path1 != null && path2 != null)
-            {
-                path1 = Path.GetFullPath(path1);
-                path2 = Path.GetFullPath(path2);
-                return path2.StartsWith(path1, StringComparison.OrdinalIgnoreCase);
-            }
+            if (path1 == null || path2 == null) return false;
+            path1 = Path.GetFullPath(path1);
+            path2 = Path.GetFullPath(path2);
+            return path2.StartsWith(path1, StringComparison.OrdinalIgnoreCase);
 
-            return false;
         }
     }
 }

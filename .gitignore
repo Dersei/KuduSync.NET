@@ -5,6 +5,7 @@ packages
 nuget.exe
 *.suo
 *.nupkg
+.vs/
 node_modules
 functionalTests.js
 test/temp

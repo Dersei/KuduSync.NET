@@ -10,7 +10,7 @@ namespace KuduSync.NET
 
         public static void Attempt(Action action, int retries = DefaultRetries, int delayBeforeRetry = DefaultDelayBeforeRetry)
         {
-            OperationManager.Attempt<object>(() =>
+            Attempt<object>(() =>
             {
                 action();
                 return null;

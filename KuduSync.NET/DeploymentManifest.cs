@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -8,12 +6,11 @@ namespace KuduSync.NET
 {
     public class DeploymentManifest
     {
-        private readonly string _manifestFilePath;
         private List<string> _paths;
 
         public DeploymentManifest(string path)
         {
-            _manifestFilePath = path;
+            ManifestFilePath = path;
             _paths = new List<string>();
         }
 
@@ -21,7 +18,7 @@ namespace KuduSync.NET
         {
             var deploymentManifest = new DeploymentManifest(path);
 
-            if (!String.IsNullOrEmpty(path) && File.Exists(path))
+            if (!string.IsNullOrEmpty(path) && File.Exists(path))
             {
                 deploymentManifest._paths = File.ReadAllLines(path).ToList();
             }
@@ -31,16 +28,13 @@ namespace KuduSync.NET
 
         public void SaveManifestFile()
         {
-            if (!string.IsNullOrWhiteSpace(_manifestFilePath))
+            if (!string.IsNullOrWhiteSpace(ManifestFilePath))
             {
-                File.WriteAllLines(_manifestFilePath, _paths);
+                File.WriteAllLines(ManifestFilePath, _paths);
             }
         }
 
-        public string ManifestFilePath
-        {
-            get { return _manifestFilePath;  }
-        }
+        public string ManifestFilePath { get; }
 
         public void AddPath(string rootPath, string path, string targetSubFolder)
         {
@@ -51,12 +45,6 @@ namespace KuduSync.NET
             _paths.Add(relativePath);
         }
 
-        public IEnumerable<string> Paths
-        {
-            get
-            {
-                return _paths;
-            }
-        }
+        public IEnumerable<string> Paths => _paths;
     }
 }

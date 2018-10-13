@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 
 namespace KuduSync.NET
 {
@@ -10,7 +9,7 @@ namespace KuduSync.NET
 
         private int _logCounter = 0;
         private StreamWriter _writer;
-        private int _maxLogLines;
+        private readonly int _maxLogLines;
         private DateTime _nextLogTime;
 
         /// <summary>
@@ -58,11 +57,9 @@ namespace KuduSync.NET
 
         public void Dispose()
         {
-            if (_writer != null)
-            {
-                _writer.Dispose();
-                _writer = null;
-            }
+            if (_writer == null) return;
+            _writer.Dispose();
+            _writer = null;
         }
     }
 }

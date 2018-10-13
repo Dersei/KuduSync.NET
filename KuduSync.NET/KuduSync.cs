@@ -10,22 +10,22 @@ namespace KuduSync.NET
 {
     public class KuduSync
     {
-        private static readonly string[] _projectFileExtensions = new[] { ".csproj", ".vbproj" };
-        private static readonly List<string> _emptyList = Enumerable.Empty<string>().ToList();
+        private static readonly string[] ProjectFileExtensions = { ".csproj", ".vbproj" };
+        private static readonly List<string> EmptyList = Enumerable.Empty<string>().ToList();
 
         private readonly Logger _logger;
 
-        private string _from;
-        private string _to;
+        private readonly string _from;
+        private readonly string _to;
         private readonly string _targetSubFolder;
-        private DeploymentManifest _nextManifest;
-        private HashSet<string> _previousManifest;
-        private HashSet<string> _ignoreList;
-        private List<string> _wildcardIgnoreList;
-        private bool _whatIf;
-        private KuduSyncOptions _options;
-        private string _toBeDeletedDirectoryPath;
-        private List<Tuple<FileInfoBase, string, string>> _filesToCopyLast = new List<Tuple<FileInfoBase, string, string>>();
+        private readonly DeploymentManifest _nextManifest;
+        private readonly HashSet<string> _previousManifest;
+        private readonly HashSet<string> _ignoreList;
+        private readonly List<string> _wildcardIgnoreList;
+        private readonly bool _whatIf;
+        private readonly KuduSyncOptions _options;
+        private readonly string _toBeDeletedDirectoryPath;
+        private readonly List<Tuple<FileInfoBase, string, string>> _filesToCopyLast = new List<Tuple<FileInfoBase, string, string>>();
 
         public KuduSync(KuduSyncOptions options, Logger logger)
         {
@@ -69,16 +69,14 @@ namespace KuduSync.NET
 
         private bool TryCleanupToBeDeletedDirectory()
         {
-            if (Directory.Exists(_toBeDeletedDirectoryPath))
+            if (!Directory.Exists(_toBeDeletedDirectoryPath)) return true;
+            try
             {
-                try
-                {
-                    OperationManager.Attempt(() => new DirectoryInfo(_toBeDeletedDirectoryPath).Delete(recursive: true));
-                }
-                catch
-                {
-                    return false;
-                }
+                OperationManager.Attempt(() => new DirectoryInfo(_toBeDeletedDirectoryPath).Delete(recursive: true));
+            }
+            catch
+            {
+                return false;
             }
 
             return true;
@@ -88,24 +86,24 @@ namespace KuduSync.NET
         {
             ignoreSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             wildcardIgnoreList = new List<string>();
-            if (!String.IsNullOrEmpty(ignore))
+            if (!string.IsNullOrEmpty(ignore))
             {
-                string[] ingoreTokens = ignore.Split(';');
-                foreach (var token in ingoreTokens)
+                string[] ignoreTokens = ignore.Split(';');
+                foreach (var token in ignoreTokens)
                 {
-                    var trimedToken = token.Trim();
+                    var trimmedToken = token.Trim();
 
-                    if (trimedToken.StartsWith("*"))
+                    if (trimmedToken.StartsWith("*"))
                     {
-                        wildcardIgnoreList.Add(trimedToken.TrimStart('*'));
+                        wildcardIgnoreList.Add(trimmedToken.TrimStart('*'));
                     }
-                    else if (trimedToken.Contains("*") || (trimedToken.Contains('/') && !trimedToken.StartsWith("/")) || trimedToken.Contains('\\'))
+                    else if (trimmedToken.Contains("*") || (trimmedToken.Contains('/') && !trimmedToken.StartsWith("/")) || trimmedToken.Contains('\\'))
                     {
                         throw new NotSupportedException(@"Wildcard support limited to prefix matching, e.g '*txt'. Other wildcard matching (or \\) is not supported");
                     }
                     else
                     {
-                        ignoreSet.Add(trimedToken);
+                        ignoreSet.Add(trimmedToken);
                     }
                 }
             }
@@ -116,7 +114,7 @@ namespace KuduSync.NET
         {
             _logger.Log("KuduSync.NET from: '{0}' to: '{1}'", _from, _to);
 
-            SmartCopy(_from, _to, _targetSubFolder, new DirectoryInfoWrapper(new DirectoryInfo(_from)), new DirectoryInfoWrapper(new DirectoryInfo(_to)));
+            SmartCopy(_from, _to, _targetSubFolder, new DirectoryInfoWrapper(new FileSystem(), new DirectoryInfo(_from)), new DirectoryInfoWrapper(new FileSystem(), new DirectoryInfo(_to)));
             CopyFilesToCopyLast();
 
             _nextManifest.SaveManifestFile();
@@ -230,8 +228,7 @@ namespace KuduSync.NET
 
             foreach (var sourceSubDirectory in sourceDirectoryLookup.Values)
             {
-                DirectoryInfoBase targetSubDirectory;
-                if (!destDirectoryLookup.TryGetValue(sourceSubDirectory.Name, out targetSubDirectory))
+                if (!destDirectoryLookup.TryGetValue(sourceSubDirectory.Name, out var targetSubDirectory))
                 {
                     string path = FileSystemHelpers.GetDestinationPath(sourcePath, destinationPath, sourceSubDirectory);
                     targetSubDirectory = CreateDirectoryInfo(path);
@@ -328,7 +325,7 @@ namespace KuduSync.NET
         private FileInfoBase TryFileFuncAndMoveFileOnFailure(Func<FileInfoBase> fileFunc, string destinationFilePath)
         {
             // Use KUDUSYNC_TURNOFFTRYMOVEONERROR environment setting as a kill switch for this feature
-            bool tryMoveOnError = String.IsNullOrEmpty(Environment.GetEnvironmentVariable("KUDUSYNC_TURNOFFTRYMOVEONERROR"));
+            bool tryMoveOnError = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("KUDUSYNC_TURNOFFTRYMOVEONERROR"));
 
             try
             {
@@ -418,7 +415,7 @@ namespace KuduSync.NET
 
             if (sb.Length == 1)
             {
-                return String.Empty;
+                return string.Empty;
             }
 
             sb.Append("]");
@@ -427,7 +424,7 @@ namespace KuduSync.NET
 
         private DirectoryInfoBase CreateDirectoryInfo(string path)
         {
-            return new DirectoryInfoWrapper(new DirectoryInfo(path));
+            return new DirectoryInfoWrapper(new FileSystem(), new DirectoryInfo(path));
         }
 
         private bool IgnorePath(FileSystemInfoBase fileSystemInfoBase)

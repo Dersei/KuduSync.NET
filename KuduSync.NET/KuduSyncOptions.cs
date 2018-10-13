@@ -1,12 +1,5 @@
 ﻿using CommandLine;
 using CommandLine.Text;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Abstractions;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KuduSync.NET
 {
@@ -51,7 +44,7 @@ namespace KuduSync.NET
         [HelpOption]
         public string GetUsage()
         {
-            return HelpText.AutoBuild(this, (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
+            return HelpText.AutoBuild(this, current => HelpText.DefaultParsingErrorsHandler(this, current));
         }
     }
 }
