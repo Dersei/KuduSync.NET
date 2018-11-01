@@ -1,5 +1,7 @@
 @echo off
 
+nuget restore
+
 msbuild /p:Configuration=Release
 
 echo Get functional tests file.
